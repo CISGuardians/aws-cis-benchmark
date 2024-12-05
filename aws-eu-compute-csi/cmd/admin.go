@@ -15,6 +15,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 )
 
+var profile string
+
 // adminCmd represents the admin command
 var adminCmd = &cobra.Command{
 	Use:   "admin",
@@ -26,7 +28,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("admin called")
+		admin(profile)
 	},
 }
 
@@ -42,12 +44,18 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// adminCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	admin()
+	adminCmd.Flags().StringVarP(&profile, "profile", "p", "default", "AWS profile to use")
 }
 
-func admin() {
-	// Create a new session using default AWS credentials
-	sess := session.Must(session.NewSession())
+func admin(profile string) {
+	// Create a session using the specified profile
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: profile, // Specify the AWS profile
+	})
+	if err != nil {
+		log.Fatalf("Failed to create session: %v", err)
+	}
+
 	svc := iam.New(sess)
 
 	// List IAM users
